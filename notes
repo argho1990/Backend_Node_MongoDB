@@ -1,0 +1,600 @@
+nodemon ./app.js localhost 3000
+
+https://www.youtube.com/watch?v=m34FCkBd7UU
+
+1.create a folder config.json for production and development.
+
+2.configure nodejs API using these Configuration Datas.
+
+{
+    "development": {
+        "PORT": 3000,
+        "MONGODB_URI": "mongodb://localhost:27017/LampStackDB"
+    },
+
+    //used during dployement server:
+    "production": {
+        "PORT": 3000,
+        "MONGODB_URI": "mongodb://xxxx/DB_Name" 
+    }
+}
+
+3.create another folder config.js 
+
+1.we will check the environment.
+2.save the environment inside the env varibale.
+3.have the command line variable NODE_ENV.  
+4.We can pass value for NODE_ENV to start this application.
+5.For example if you are going to run this application,then in production environment.
+6.We can use this command here.
+    
+    For value for development will 
+    
+    NODE_ENV = production node app.js
+
+    For value for development will be
+
+    NODE_ENV = development node app.js
+
+7.In most of the cases we wont pass value for NODE_ENV in development stage,in that case 
+we will use the default value for development.
+
+var env =process.env.NODE_ENV || 'development';  
+The above can be read as 
+"env will be assigned as will be assigned the value of process.env.NODE_ENV if logically
+true or 'development'."
+So,if process.env.NODE_ENV is not set or set to false then 'development' will be used.
+
+
+8.So inside this env we will have either the development or production based on the environment,we running this application.
+
+9.Fetch configuration datas from config.json
+ REQUIRE THE FILE:
+ var config = require('/config.json'); have the json data.
+
+ var envConfig = config[env] and we have to retrieve the property of environment.
+  So,basically we have this [data]
+   "development": {
+        "PORT": 3000,
+        "MONGODB_URI": "mongodb://localhost:27017/LampStackDB"
+    }
+               or this [data]
+
+    "production": {
+        "PORT": 3000,
+        "MONGODB_URI": "mongodb://xxxx/DB_Name"
+    } 
+
+  based on the [enviroment].
+
+
+
+ 
+10.Extract configuration datas based on the provided environment[production,development] 
+Now we will configure this nodejs API using this configuration data for that we will use
+process.env key value structure.
+For that we can do this:
+
+Object.keys(envConfig);///inside that we have the configuration data.
+
+The Object.keys() 
+method returns an array of a given object's own enumerable property names, 
+in the same order as we get with a normal loop.
+
+const object1 = {
+  a: 'somestring',
+  b: 42,
+  c: false
+};
+
+console.log(Object.keys(object1));
+// expected output: Array ["a", "b", "c"]
+basically we are going to iterate throufgh the key collection,using the
+forEach() FUNCTION.
+
+var array1 = ['a', 'b', 'c'];
+
+array1.forEach(function(element) {
+  console.log(element);
+});
+
+// expected output: "a"
+// expected output: "b"
+// expected output: "c"
+
+ // add env. config values to process.env [dictionary].
+ 
+ Object.keys(envConfig).forEach(key =>process.env[key]=env.Config[key]);
+
+ var array1 = ['a', 'b', 'c'];
+
+array1.forEach(function(element) {
+  console.log(element);
+});
+
+// expected output: "a"
+// expected output: "b"
+// expected output: "c"
+
+
+ 1.Here we have the arrow function(=>)with a single parameter key inside that we are going to assign values for this 
+ key-value[process.env] dictionary.
+ 
+ 2.Here we have assigned value for these PORT and MONGODB_URI 
+   "development": {
+        "PORT": 3000,
+        "MONGODB_URI": "mongodb://localhost:27017/LampStackDB"
+    },
+  into this key-value pair. 
+3.Here we have added configuration details to the process.env.
+4.So from now onwards in order to retrieve value for port no and mongoDB URI independent of 
+enviroment,we can make use of this process.env in other javascript files.
+5.After all in order to execute this js file,we have to require this file in app.js file.
+   require('./config/config');
+
+6.create database connection:
+  create a new folder.[models]
+  create another js file.[db.js]
+  
+import files in app.js
+require('./config/config.js');
+require('./models/db'); 
+
+****You can also set it in your file.******
+process.env.NODE_ENV = 'production';
+
+var env =process.env.NODE_ENV || 'development';  
+
+Need to configure application middleware:
+app.js
+
+require('./config/config.js');
+require('./models/db');
+
+
+const express = require('express');
+const bodyParser = require('body-parser');
+const cors = require('cors');
+
+//In order to with express package we have to define this app varibale by calling the following function.[express]
+
+var app = express();
+
+// configure application middleware:
+app.use(bodyParser.json());//pass json data into this node js application.
+
+//this nodejs application will be running in a port number and the client side application Angular 6 will be running in a different port no.
+//in order to communicate between them we have to unable cors.
+
+app.use(cors());
+
+//start server [Express]:
+//call the callback function:
+
+app.listen(process.env.PORT, () => console.log(`Server starting at port:  ${process.env.PORT}`));
+development
+Server starting at port:  3000
+MongoDB connection succeeded.
+
+save data inside the data db collection.
+//define a mongoose model.
+//add js file inside the models folder.[user.model.js]
+
+const mongoose = require('mongoose');
+
+//define a varible to define user-schema.
+//here we have the userSchema Object 
+//created an object of Schema with this constructor.
+//inside this constructor [Schema],we can define our userSchema structure. 
+var userSchema = new mongoose.Schema({
+
+    firstName: {
+        type: String
+    },
+    lastName: {
+        type: String
+    },
+    emailAddress: {
+        type: String
+    },
+    password: {
+
+        type: String
+
+    },
+    //used for the encryption and decryption of password saved inside the field password.
+    saltSecret: {
+        type: String
+    }
+
+});
+
+register userSchema object inside mongoose.
+
+mongoose.model('User',userSchema);
+//first paramter is the model name.
+//second parametr is the userSchema object.
+//it will be saved in a collection named users.
+//collection is plural of user => users.
+//custom collection name can be passed as 3rd collection here.[asdef]mongoose.model('User',userSchema,customCollection);
+
+#db.js
+
+require('./user.model');
+
+create a controller for user-registration.
+
+controller/user.controller.js
+//define a function for user-registration or user-sign up.
+
+//export from this controller.
+//it will have 3 parameters
+module.exports.register = (req,res,next)=>{}
+//handle a request from client-side.
+//now its an empty function that can handle user-request,expand the function as per the requirement.
+
+#configure routing inside this application.
+#create the folder.
+
+routes/index.router.js
+inside this index.router we will route common routes inside this application.
+
+//require statement for express package. 
+const express = require('express');
+
+//call router function from the express constant.
+//return object into this constant router.
+
+const router = express.Router();
+
+
+//using this constant we will configure [routing] inside this application.
+//use ctrl for controllers.
+
+const ctrlUser=require('../controllers/user.controller');
+
+configire routing configuration for users
+
+router.post('/register', ctrlUser.register);
+uri for the user registration.['/register']
+function to handle use-sign-up 
+
+//export router from this module.
+
+
+module.exports =router
+
+//using this exported router constant,you can configure routing middleware,
+inside this application we can do this  inside 
+
+the app.js file.
+
+we need the require statement for index router:
+const rtsIndex = require('./routes/index.router')
+
+using this constant you can configure the middleware like this.
+app.use('/api',rtxIndex);
+
+
+when user makes a request like this 
+
+/api/register=> the request will be handled by this function 
+which we have specified here. in 
+user.controller.
+
+moving to user.controller.js
+
+
+module.exports.register = (req, res, next) => {
+    console.log('inside register fn');
+}
+
+=>localhost:3000/api/register
+
+=> development
+   Server starting at port:  3000
+   MongoDB connection succeeded.
+   inside register fn
+
+
+Along with this register post request user will send data like user fullName,email,password
+and this saltSecret property is automatically created inside the user-registration funcion.
+
+These 4 properties should be recieved from client side and we have to save these properties,
+into the mongoDB in the users collection.
+
+user.controller.js:
+
+const mongoose = require('momgoose');
+
+const User =mongoose.model('User'); 
+
+=>'User' Schema inside this user.model.js file
+   mongoose.model('User',userSchema);
+
+
+var userSchema = new mongoose.Schema({
+
+    firstName: {
+        type: String
+    },
+    lastName: {
+        type: String
+    },
+    emailAddress: {
+        type: String
+    },
+    password: {
+
+        type: String
+
+    },
+    //used for the encryption and decryption of password saved inside the field password.
+    saltSecret: {
+        type: String
+    }
+
+});
+
+  mongoose.model('User', userSchema);
+//created the schema and named the schema as user.
+
+//put the registered 'User' into this constant. 
+ const User =mongoose.model('User');   
+
+//Now inside this register function we are going to save a new user record
+  based on the values passed through the req parameter here.
+
+ module.exports.register =(req,res,next)=>{
+
+     //make an object of this User-model.
+     //created a mongoose model User.
+     //you can retreive values like fullName,email and password from this request paramter.
+     //into this user-schema here for that we can do this.   
+     //var user = new User();
+     //you can retreive values like fullName,email and password from this request paramter.
+     //into this user-schema here for that we can do this.
+
+     user.fullName = req.body.fullName;
+     that is passed through this post request.
+
+     Similarly we can retrive values here for email and password.
+     Finally we have to save this user report,for that we can call this function user.save()
+     Here we have two functions err and doc
+     possible errors will be passed through this parameter(err)
+     and newly saved records will be passed through this paramter doc.
+
+     If there is no error it will return the newly saved details back to the 
+     column through response like this 
+
+    var user = new User();
+    user.fullName = req.body.fullName;
+    user.email = req.body.fullName;
+    user.password = req.body.password;
+    user.save((err, doc) => {
+        if (!err)
+            res.send(doc);
+    });
+
+
+
+    res.send(doc);//passed the value of doc parameter.
+    we have passed value for email,password and fullname.
+    we have one more proiperty inside the userSchema(user) here     
+    which is the saltSecret is used for the encryption and decryption of password strings saved inside this password
+    field .
+
+    In order to generate and save the saltSecret we are going to use pre-events in our 
+    mongoose model that means before executing this save function from mongooose.
+    we can execute some pre-events inisde that we  genretate the saltSecret.
+
+    So,lets look how we can do that.
+    In order to do that we have to add the require statement
+    for bycrypt.js here.
+
+    const mongoose = require('mongoose');
+    const bycrypt = require('bycryptjs');
+
+//define a varible to define user-schema.
+//here we have the userSchema Object 
+//created an object of Schema with this constructor.
+//inside this constructor [Schema],we can define our userSchema structure. 
+var userSchema = new mongoose.Schema({
+
+    firstName: {
+        type: String
+    },
+    lastName: {
+        type: String
+    },
+    emailAddress: {
+        type: String
+    },
+    password: {
+
+        type: String
+
+    },
+    //used for the encryption and decryption of password saved inside the field password.
+    saltSecret: {
+        type: String
+    }
+
+});
+
+mongoose.model('User', userSchema);
+     
+
+lets add a pre-event inside the user schema,it will be something like this,
+1.We have pre event before executing this save function here, this event will be triggered.
+
+
+userSchema.pre('save',function(next){
+    bycrypt.genSalt(10,(err,salt)=>{
+        bycrypt.hash(this.password,salt,(err,hash)=>{
+            this.password = hash;
+            this.saltSecret = salt;  
+            next();   
+         });
+    });
+});
+
+2. this function will be invoked beforet the save operation
+function(next){
+    bycrypt.genSalt(10,(err,salt)=>{
+        bycrypt.hash(this.password,salt,(err,hash)=>{
+            this.password = hash;
+            this.saltSecret = salt;  
+            next();   
+         });
+    });
+}
+
+3.inside the function we have called this function:
+  from bcrypt.js in order to generate a random salt secret code.
+
+4.As a first parameter we have the round number which is 10.
+
+5.As a second parameter we have the callback function.
+
+6.After generating the random secret code,we call this callback funcion,we will call this callback function it has 
+two parameters error and randomly generated saltSecret inside the funcion.
+ bycrypt.genSalt(10,(err,salt)=>{}
+
+7.Inside the function we will call another function hash from bycrypt.js 
+bycrypt.hash(this.password,salt,(err,hash)=>{}
+which basically encrypt the password which is passed from the client side using this saltSecret code(salt) 
+After encryption it will call another function here,you can see.
+(err,hash)=>{}
+(err,hash)=>{
+            this.password = hash;
+            this.saltSecret = salt;  
+            next();   
+});
+
+Inside the function you can see here we have the encrypted password inside this hash parameter.
+It will be saved inside this password property.
+and corresponding salt secret code will be saltSecret finally we have to call the next function.
+Then only it will execute the remaining save operation.
+And thereby we have fullName,email encrypted password and saltSecret code which is used to encrypt 
+this password.(this.password)
+
+
+These four properties will be saved in our mongoDB.
+
+
+localhost:3000/api/register
+application/json =>headers
+body
+{
+
+   "firstName":"Ticklu",
+   "lastName":"1990",
+   "emailAddress:"ticklu1990@gmail.com"
+   "password:"1234"
+
+}
+
+
+33:17
+
+ } 
+
+
+
+=>REGEX:[javascript]
+
+https://www.youtube.com/watch?v=r6I-Ahc0HB4&list=PL4cUxeGkcC9g6m_6Sld9Q4jzqdqHd2HiD&index=1
+https://regex101.com/
+
+=>Allow us to check a string of characters like a password or email address for matches to
+  make sure that it conforms to a pattern described by that regular expression.
+
+Set up -Authentication inside nodejs Application:
+npm i --save jsonwebtoken passport passport-local lodash.
+
+passportjs: it will act as an authetication middleware in nodejs application.
+it has various strategies for Authentication.
+
+For example:local strategy.That means authetication using user-name and passoword.
+Other than that it has strategies which uses socia accounts like gmail,twitter,facebook,gmail,github,etc
+
+Here in this nodejs application,we will implement Authentication using local strategy,so thats why we have installed this package,
+passport-local.
+
+Config. Passport for Authentication:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
